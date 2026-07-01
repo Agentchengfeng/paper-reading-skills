@@ -1,0 +1,4 @@
+interface:
+  display_name: "论文协作阅读"
+  short_description: "目的优先的论文解读、HTML 协作标记、正文重组和内置浏览器验证"
+  default_prompt: "使用 $paper-reading 处理论文资料或论文解读 HTML：先抽取研究目的和核心结论，再按轻量 HTML 契约生成或修改文档式长文；需要划线协作时使用 bridge 写回标记，需要更新页面时用 Codex 内置浏览器刷新验证。"

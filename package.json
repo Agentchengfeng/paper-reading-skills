@@ -1,0 +1,38 @@
+{
+  "name": "paper-reading-skills",
+  "version": "0.1.0",
+  "description": "Claude Code / Codex paper-reading skill: purpose-first paper interpretation, HTML long-form docs, SVG explanations, annotation bridge, and browser verification.",
+  "bin": {
+    "paper-reading-skills": "bin/install.js",
+    "paper-reading-cpm": "bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "skills/",
+    "README.md",
+    "LICENSE",
+    "SKILL.md"
+  ],
+  "keywords": [
+    "claude-code",
+    "codex",
+    "paper-reading",
+    "research-paper",
+    "skill",
+    "svg",
+    "html",
+    "annotation"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Agentchengfeng/paper-reading-skills.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Agentchengfeng/paper-reading-skills/issues"
+  },
+  "homepage": "https://github.com/Agentchengfeng/paper-reading-skills#readme",
+  "license": "MIT",
+  "engines": {
+    "node": ">=16.7"
+  }
+}
