@@ -1,8 +1,8 @@
 # NOTICE
 
-Copyright 2026 chengfeng / AI产品自由.
+Copyright 2026 成峰 / AI产品自由.
 
-This project is created and maintained by **chengfeng / AI产品自由**.
+This project is created and maintained by **成峰 / AI产品自由**.
 
 Official accounts:
 

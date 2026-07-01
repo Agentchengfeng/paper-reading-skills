@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Claude Code / Codex paper-reading skill: purpose-first paper interpretation, HTML long-form docs, SVG explanations, annotation bridge, and browser verification.",
   "license": "Apache-2.0",
-  "author": "chengfeng / AI产品自由",
+  "author": "成峰 / AI产品自由",
   "bin": {
     "paper-reading-skills": "bin/install.js",
     "paper-reading-cpm": "bin/install.js"

@@ -10,7 +10,7 @@
 
 ## 官方来源
 
-本项目由 **chengfeng / AI产品自由** 原创并维护。
+本项目由 **成峰 / AI产品自由** 原创并维护。
 
 ```text
 GitHub: Agentchengfeng

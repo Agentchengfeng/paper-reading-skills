@@ -24,7 +24,7 @@ paper-reading/
 ## 来源与协议
 
 - 官方来源：`https://github.com/Agentchengfeng/paper-reading-skills`
-- 作者：`chengfeng / AI产品自由`
+- 作者：`成峰 / AI产品自由`
 - 协议：Apache-2.0；复制、改造或二次发布时保留 `LICENSE` 和 `NOTICE.md`。
 
 ## 资源路由
