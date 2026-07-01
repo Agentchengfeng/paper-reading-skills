@@ -18,3 +18,7 @@ npx -y github:Agentchengfeng/paper-reading-skills install
 The installer copies `skills/paper-reading` into `~/.claude/skills/paper-reading` and symlinks it into `~/.codex/skills/paper-reading`.
 
 This package contains only reusable skill instructions and scripts. It does not contain generated paper-reading HTML files, annotation logs, paper PDFs, or API keys.
+
+Official source: `https://github.com/Agentchengfeng/paper-reading-skills`
+
+License: Apache-2.0. Keep `LICENSE` and `NOTICE.md` when copying, redistributing, or adapting this package.

@@ -64,6 +64,10 @@ function installSkill(name) {
     backup = backupAndRemove(dst, name);
   }
   copyDir(src, dst);
+  for (const file of ['LICENSE', 'NOTICE.md', 'CITATION.cff']) {
+    const packaged = path.join(PKG_ROOT, file);
+    if (fs.existsSync(packaged)) fs.copyFileSync(packaged, path.join(dst, file));
+  }
   log(`  ✓ ${name} -> ${dst}`);
   if (backup) log(`    backup: ${backup}`);
 }
@@ -91,12 +95,15 @@ function doctor() {
   let ok = true;
   for (const name of SKILLS) {
     const claude = path.join(CLAUDE_SKILLS, name, 'SKILL.md');
+    const notice = path.join(CLAUDE_SKILLS, name, 'NOTICE.md');
     const codex = path.join(CODEX_SKILLS, name);
     const exists = fs.existsSync(claude);
+    const hasNotice = fs.existsSync(notice);
     const linked = fs.existsSync(codex) && fs.lstatSync(codex).isSymbolicLink();
     log(`${exists ? '✓' : '✗'} Claude skill: ${claude}`);
+    log(`${hasNotice ? '✓' : '✗'} Attribution notice: ${notice}`);
     log(`${linked ? '✓' : '✗'} Codex symlink: ${codex}`);
-    ok = ok && exists && linked;
+    ok = ok && exists && hasNotice && linked;
   }
   try {
     execSync('python3 --version', { stdio: 'ignore' });

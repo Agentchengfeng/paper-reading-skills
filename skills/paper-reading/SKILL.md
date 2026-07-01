@@ -21,6 +21,12 @@ paper-reading/
 └── scripts/bridge.py           本地标记写回脚本
 ```
 
+## 来源与协议
+
+- 官方来源：`https://github.com/Agentchengfeng/paper-reading-skills`
+- 作者：`chengfeng / AI产品自由`
+- 协议：Apache-2.0；复制、改造或二次发布时保留 `LICENSE` 和 `NOTICE.md`。
+
 ## 资源路由
 
 - 从论文或 repo 生成/重写正文：读 `docs/01-paper-prompt.md`。

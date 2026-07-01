@@ -10,6 +10,33 @@
 
 The package contains only the reusable skill instructions and bridge script. It does not include papers, generated HTML pages, annotation logs, API keys, or private workspace material.
 
+## Official Source
+
+This project is created and maintained by **chengfeng / AI产品自由**.
+
+```text
+GitHub: Agentchengfeng
+X: chengfeng240928
+小红书: AI产品自由
+公众号: AI产品自由
+B站: AI产品自由
+抖音 / 视频号: AI产品自由
+```
+
+Original repository:
+
+```text
+https://github.com/Agentchengfeng/paper-reading-skills
+```
+
+This repository follows the same license and attribution convention as:
+
+```text
+https://github.com/Agentchengfeng/chengfeng-videocut-skills
+```
+
+If you use, copy, translate, redistribute, or adapt this project, keep the original author, original repository link, `LICENSE`, and `NOTICE.md`.
+
 ## Install
 
 Install directly from GitHub:
@@ -86,4 +113,4 @@ skills/paper-reading/
 
 ## License
 
-MIT
+Apache-2.0. See `LICENSE` and `NOTICE.md`.
