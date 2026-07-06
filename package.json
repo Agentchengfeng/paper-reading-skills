@@ -1,7 +1,7 @@
 {
   "name": "paper-reading-skills",
-  "version": "0.1.0",
-  "description": "Claude Code / Codex paper-reading skill: purpose-first paper interpretation, HTML long-form docs, SVG explanations, annotation bridge, and browser verification.",
+  "version": "0.2.1",
+  "description": "Claude Code / Codex paper-reading skill: purpose-first paper interpretation, HTML long-form docs, SVG/Mermaid explanations, annotation bridge, validator, and smoke tests.",
   "license": "Apache-2.0",
   "author": "成峰 / AI产品自由",
   "bin": {
@@ -15,7 +15,12 @@
     "LICENSE",
     "NOTICE.md",
     "CITATION.cff",
-    "SKILL.md"
+    "PACKAGE.md",
+    "tests/",
+    "!**/__pycache__/**",
+    "!**/*.pyc",
+    "!**/.pytest_cache/**",
+    "!**/.pytest_cache"
   ],
   "keywords": [
     "claude-code",

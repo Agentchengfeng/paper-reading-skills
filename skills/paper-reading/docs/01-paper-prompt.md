@@ -61,7 +61,7 @@ pos: paper-reading 的论文阅读方法
 
 ## 公式处理
 
-遇到核心公式时，不要只把公式塞进普通段落。按“教科书式解释”展开：
+遇到核心公式时，不要只把公式塞进普通段落。按”教科书式解释”展开：
 
 ```text
 公式回答什么问题
@@ -71,9 +71,41 @@ pos: paper-reading 的论文阅读方法
 ```
 
 - 先说明公式在算什么，不先堆符号。
-- 逐项解释变量，尤其说明“越大越好 / 越小越好 / 只是中间成本”。
+- 逐项解释变量，尤其说明”越大越好 / 越小越好 / 只是中间成本”。
 - 把公式连接回论文目的和机制链，避免变成孤立数学说明。
 - 只解释当次材料里真正支撑结论的公式；次要公式可以保留为普通行内说明。
+
+### LaTeX 源码要求
+
+核心公式生成 `formula-card` 时，**必须同时提供 LaTeX 源码**，写入 `data-katex` 属性：
+
+```text
+论文公式 α = exp(z) / Σ exp(z)
+  → data-katex=”\alpha = \frac{\exp(z)}{\sum \exp(z)}”
+  → equation-plain: “α = exp(z) / Σ exp(z)”
+```
+
+- LaTeX 只用 KaTeX 支持的子集：`\frac`、`\sum`、`\int`、`\begin{pmatrix}`、`^{}``_{}`、`\alpha` 等。
+- 不要用文档级命令（`\begin{equation}`、`\section`、`\label`）。
+- `equation-plain` 纯文字版用 Unicode 近似（α、Σ、√、≤），必须手写，不能留空。
+- KaTeX 渲染由前端自动完成，详见 `docs/04-katex-setup.md`。
+- 从论文 PDF 或 repo 提取公式时，优先保留原始 LaTeX；只有原始格式不可用时才手写近似 LaTeX。
+
+### 多公式场景
+
+当论文涉及多个公式的推导链、变量依赖或损失组合时，单个 `formula-card` 不够。用 `svg-figure formula-relation` 画公式之间的关系：
+
+```text
+2 个以上公式的推导顺序    → 推导链（derivation-chain）
+变量在公式间的流动关系    → 变量依赖图（variable-dependency）
+总损失 = 各项之和          → 损失组合图（loss-composition）
+两种方法的公式对比        → 方法对比图（formula-compare）
+```
+
+- 单个公式用 `formula-card` + KaTeX 渲染数学排版。
+- 多个公式的关系用 `formula-relation` SVG 表达结构。
+- 两者配合：`formula-relation` 的节点放公式缩写，相邻的 `formula-card` 放完整公式 + 变量解释。
+- 模板和规则详见 `docs/04-katex-setup.md` 的"公式关系图"章节。
 
 ## 概念分段
 
@@ -115,6 +147,7 @@ SVG 图解只画必要结构：
 - 开头没有研究目的，重写。
 - 文档式 HTML 开头没有总览图，且读者需要先建立全局理解，补一张开篇总览图。
 - 核心公式没有独立解释变量和直觉，补成公式解释组件。
+- 核心公式的 `formula-card` 缺少 `data-katex` LaTeX 源码或 `equation-plain` 纯文字回退，补全双层渲染。
 - 概念底座把多个关键术语堆在同一段，拆段或拆小标题。
 - 关键英文术语没有“英译中 / 怎么理解”，补上。
 - 抽象概念仍然只靠长文字说明，补 SVG 动作图或关系图。
