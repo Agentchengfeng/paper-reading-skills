@@ -48,21 +48,33 @@ pos: paper-reading 的页面版式标准
 
 ## 公式
 
-- 核心公式使用独立的教科书式解释框，不混在普通段落里。
-- 解释框包含：公式本体、公式在回答什么问题、变量表、直觉读法。
+- 核心公式使用独立的教科书式解释框（`formula-card`），不混在普通段落里。
+- 公式本体采用 KaTeX 双层渲染：`equation-rendered`（数学排版）优先显示，`equation-plain`（纯文字）用于回退和无障碍。详见 `docs/04-katex-setup.md`。
+- 解释框包含：公式本体（双层）、公式在回答什么问题、变量表、直觉读法。
+- `data-katex` 属性必须填原始 LaTeX 源码（如 `\frac{a}{b}`），由前端 KaTeX 自动渲染。
 - 变量表用清晰的符号列和解释列，移动端可改成单列。
 - 公式框宽度跟正文一致，不能挤进右侧批注区，也不能遮挡阅读地图。
-- 视觉上要和普通提示框区分：公式本体突出，变量解释可扫描，直觉读法有轻量背景。
+- 视觉上要和普通提示框区分：KaTeX 渲染的公式本体突出，变量解释可扫描，直觉读法有轻量背景。
+- 行内短公式用 `<span class="formula" data-katex="...">文字回退</span>`，不展开为完整 formula-card。
+- KaTeX 渲染失败时，如果 `formula-card__fallback-svg` 已预填充，则显示该 SVG；否则退到 `equation-plain` 纯文字。脚本不在浏览器端自动生成 SVG。
 
 ## SVG
 
 - 每个重要图使用 `svg-figure`。
 - 稍微复杂的机制、流程、对照、公式关系、调度逻辑、瓶颈链和概念依赖，必须用 SVG 图解，不只写长文字。
 - 概念级图使用 `svg-figure concept-visual`，尺寸比主图更小，服务于当前概念，不展开成大图谱。
-- 图后写“这张图怎么读”。
+- 图后写"这张图怎么读"。
 - SVG 只画动作链、因果链、变量关系或取舍关系；不要用装饰性图形填充页面。
 - 如果一个解释需要读者在脑中同时保留三个以上对象，拆段并配图。
 - 重组正文时，有用图保留为普通正文配图。
+
+## Mermaid UML 图
+
+- 类继承、接口实现、调用时序使用 `mermaid-figure uml-class` / `mermaid-figure uml-sequence`，详见 `docs/05-mermaid-diagrams.md`。
+- Mermaid 图的容器宽度跟正文一致，和 `svg-figure` 一样不进右侧批注区。
+- 图后必须跟 `read-guide`，解释 UML 符号含义（继承箭头、菱形、生命线）。
+- `<pre class="mermaid">` 内的 `<` 必须写成 `&lt;`，否则浏览器当成 HTML 标签吃掉。
+- Mermaid 图和 SVG 图可以混用：公式关系用手写 SVG，UML 关系用 Mermaid，不要交叉。
 
 ## 验证
 

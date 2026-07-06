@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Paper Reading Minimal Example</title>
+  <style>
+    body { margin: 0; font-family: -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; color: #111; background: #fff; }
+    .paper-doc { display: grid; grid-template-columns: 240px minmax(0, 860px); gap: 32px; max-width: 1180px; margin: 0 auto; padding: 32px 24px; }
+    .paper-sidebar { position: sticky; top: 24px; align-self: start; border-right: 1px solid #dddddd; padding-right: 20px; }
+    .paper-main { line-height: 1.75; }
+    .paper-main section { margin-bottom: 44px; }
+    .svg-figure { display: block; width: 100%; height: auto; margin: 20px 0 8px; }
+    .read-guide { color: #555555; font-size: 14px; margin-top: 8px; }
+    .formula-card { border: 1px solid #dddddd; border-radius: 12px; padding: 18px; background: #fafafa; margin: 20px 0; }
+    .formula-card__label { font-weight: 700; margin-bottom: 10px; }
+    .formula-card__equation { font-size: 18px; margin: 8px 0; }
+    .formula-card__equation-rendered:empty { display: none; }
+    .formula-legend__row { display: grid; grid-template-columns: 120px 1fr; gap: 12px; margin: 8px 0; }
+    .formula-symbol { font-family: "Segoe UI Symbol", "Noto Sans Math", sans-serif; }
+    .term-bridge { border-left: 3px solid #333333; padding-left: 12px; background: #f8f9fa; }
+    .mermaid-figure { border: 1px solid #dddddd; border-radius: 12px; padding: 16px; margin: 20px 0; }
+    pre.mermaid { white-space: pre-wrap; }
+    .paper-question-marker { border-left: 3px solid #c62828; padding: 8px 12px; background: #fff8e1; }
+    .paper-answer-note { border: 1px dashed #888888; padding: 12px; }
+    .annotation-highlight { background: linear-gradient(transparent 55%, #fff8e1 55%); }
+    .svg-text-annotation-highlight { text-decoration: underline; }
+    .svg-inline-highlight { stroke: #c62828; stroke-dasharray: 4 3; }
+  </style>
+</head>
+<body>
+  <div class="paper-doc" data-paper-id="minimal-paper-example">
+    <aside class="paper-sidebar" aria-label="内容阅读地图">
+      <h2>阅读地图</h2>
+      <nav>
+        <a href="#thesis">研究目的</a><br>
+        <a href="#concepts">概念底座</a><br>
+        <a href="#mechanism">机制链</a><br>
+        <a href="#evidence">证据链</a><br>
+        <a href="#limits">边界</a>
+      </nav>
+    </aside>
+
+    <main class="paper-main">
+      <section id="thesis">
+        <h1>最小论文阅读示例</h1>
+        <p>研究目的：把论文中的旧瓶颈、关键动作和证据链组织成一篇可连续阅读、可追问、可重组的长文。</p>
+        <svg class="svg-figure concept-visual" width="720" height="180" viewBox="0 0 720 180" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, Segoe UI, PingFang SC, Microsoft YaHei, sans-serif" aria-label="论文解读总览">
+          <rect x="0" y="0" width="720" height="180" fill="#ffffff"/>
+          <rect x="24" y="54" width="150" height="72" rx="10" fill="#e3f2fd" stroke="#1565c0" stroke-width="2"/>
+          <text x="99" y="86" text-anchor="middle" font-size="15" fill="#000000">旧瓶颈</text>
+          <text x="99" y="108" text-anchor="middle" font-size="12" fill="#666666">为什么不够</text>
+          <line x1="184" y1="90" x2="264" y2="90" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="274" y="54" width="150" height="72" rx="10" fill="#fff3e0" stroke="#e65100" stroke-width="2"/>
+          <text x="349" y="86" text-anchor="middle" font-size="15" fill="#000000">关键动作</text>
+          <text x="349" y="108" text-anchor="middle" font-size="12" fill="#666666">作者改了什么</text>
+          <line x1="434" y1="90" x2="514" y2="90" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+          <rect x="524" y="54" width="150" height="72" rx="10" fill="#e8f5e9" stroke="#2e7d32" stroke-width="2"/>
+          <text x="599" y="86" text-anchor="middle" font-size="15" fill="#000000">证据链</text>
+          <text x="599" y="108" text-anchor="middle" font-size="12" fill="#666666">实验证明什么</text>
+          <defs>
+            <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+              <path d="M0,0 L8,3 L0,6 Z" fill="#333333"/>
+            </marker>
+          </defs>
+        </svg>
+        <p class="read-guide">读法：先定位旧方法的瓶颈，再看论文提出的关键动作，最后回到实验和消融证据。</p>
+      </section>
+
+      <section id="concepts">
+        <h2>概念底座</h2>
+        <div class="term-bridge">
+          <p><strong>Purpose-first reading</strong>：不是先翻译摘要，而是先判断这篇论文试图把什么技术瓶颈变成什么可用收益。</p>
+        </div>
+
+        <div class="formula-card" aria-label="Softmax 公式说明">
+          <div class="formula-card__label">公式拆解</div>
+          <div class="formula-card__equation formula-card__equation-rendered" data-katex="\alpha_i=\frac{\exp(z_i)}{\sum_j\exp(z_j)}"></div>
+          <div class="formula-card__equation formula-card__equation-plain" aria-label="公式纯文字回退" aria-hidden="false">
+            α(i) = exp(z(i)) / Σ(j) exp(z(j))
+          </div>
+          <div class="formula-card__fallback-svg" data-katex-fallback="true" hidden></div>
+          <p class="formula-card__caption">这条公式把一组打分 z 转成归一化权重 α。</p>
+          <dl class="formula-legend">
+            <div class="formula-legend__row">
+              <dt><span class="formula-symbol">z(i)</span></dt>
+              <dd>第 i 个候选项的原始打分。</dd>
+            </div>
+            <div class="formula-legend__row">
+              <dt><span class="formula-symbol">α(i)</span></dt>
+              <dd>归一化后的权重，所有候选项权重之和为 1。</dd>
+            </div>
+          </dl>
+          <div class="formula-card__intuition">直觉是“分数越高，分到的概率越大”。</div>
+        </div>
+      </section>
+
+      <section id="mechanism">
+        <h2>机制链</h2>
+        <div class="mermaid-figure uml-class" aria-label="模块类层级">
+<pre class="mermaid">
+classDiagram
+    direction LR
+    class Encoder {
+        +encode(x) Tensor
+    }
+    class PaperReader {
+        +explain(material) HTML
+    }
+    Encoder &lt;|-- PaperReader : uses
+</pre>
+          <p class="read-guide">读法：PaperReader 复用编码器能力读取材料，再生成解释性 HTML。</p>
+        </div>
+      </section>
+
+      <section id="evidence">
+        <h2>证据链</h2>
+        <p>证据链需要区分论文实验、repo 代码和作者解释，不能把推断当作论文事实。</p>
+      </section>
+
+      <section id="limits">
+        <h2>边界</h2>
+        <p>这个页面是最小结构示例，不代表任何具体论文结论。</p>
+      </section>
+
+      <section id="sources">
+        <h2>来源</h2>
+        <p>示例材料：paper-reading skill minimal example。</p>
+      </section>
+
+      <section id="askbar" class="paper-askbar" aria-label="论文追问输入区">
+        <h2>追问入口</h2>
+        <form class="paper-askbar__form" onsubmit="return false;">
+          <label for="paper-askbar-input">对当前论文页面继续追问</label>
+          <input id="paper-askbar-input" class="paper-askbar__input" type="text" placeholder="例如：帮我把机制链改成一张图" aria-label="追问内容">
+          <button class="paper-askbar__button" type="submit">记录追问</button>
+        </form>
+      </section>
+
+      <section id="paper-mark-panel" class="paper-mark-panel">
+        <h2>划线问题</h2>
+        <div class="paper-annotation">
+          <p class="paper-answer-note">这里展示 bridge 写回后可以插入解释的位置。</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

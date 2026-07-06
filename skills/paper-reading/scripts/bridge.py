@@ -298,12 +298,28 @@ def insert_question_block(page_path, item):
 
 
 class PaperBridgeHandler(BaseHTTPRequestHandler):
-    server_version = "PaperReadingBridge/2.0"
+    server_version = "PaperReadingBridge/2.1"
+
+    def token_ok(self):
+        """可选本地 token。未配置 token 时保持向后兼容；配置后所有接口都要带 token。"""
+        expected = getattr(self.server, "token", None)
+        if not expected:
+            return True
+        provided = self.headers.get("X-Paper-Bridge-Token") or self.headers.get("Authorization", "")
+        if provided.startswith("Bearer "):
+            provided = provided[7:].strip()
+        return provided == expected
+
+    def require_token(self):
+        if self.token_ok():
+            return True
+        self.write_json({"ok": False, "error": "unauthorized: missing or invalid bridge token"}, status=401)
+        return False
 
     def end_headers(self):
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, X-Paper-Bridge-Token, Authorization")
         super().end_headers()
 
     def write_json(self, payload, status=200):
@@ -318,6 +334,8 @@ class PaperBridgeHandler(BaseHTTPRequestHandler):
         self.write_json({"ok": True})
 
     def do_GET(self):
+        if not self.require_token():
+            return
         path = urlparse(self.path).path
         if path == "/healthz":
             self.write_json({"ok": True, "page": str(self.server.page_path), "log": str(self.server.log_path)})
@@ -337,6 +355,8 @@ class PaperBridgeHandler(BaseHTTPRequestHandler):
         self.write_json({"ok": False, "error": "not found"}, status=404)
 
     def do_POST(self):
+        if not self.require_token():
+            return
         path = urlparse(self.path).path
         if path != self.server.endpoint:
             self.write_json({"ok": False, "error": "not found"}, status=404)
@@ -369,11 +389,12 @@ class PaperBridgeHandler(BaseHTTPRequestHandler):
 
 
 class PaperBridgeServer(ThreadingHTTPServer):
-    def __init__(self, server_address, handler_class, *, endpoint, page_path, log_path):
+    def __init__(self, server_address, handler_class, *, endpoint, page_path, log_path, token=None):
         super().__init__(server_address, handler_class)
         self.endpoint = endpoint
         self.page_path = Path(page_path).expanduser() if page_path else None
         self.log_path = Path(log_path).expanduser()
+        self.token = token
 
 
 def main():
@@ -383,6 +404,7 @@ def main():
     parser.add_argument("--endpoint", default="/__paper_annotation")
     parser.add_argument("--page", required=True, help="HTML file to update.")
     parser.add_argument("--log", default="paper_annotation_requests.jsonl")
+    parser.add_argument("--token", default=None, help="Optional local bridge token. If set, requests must include X-Paper-Bridge-Token or Authorization: Bearer <token>.")
     args = parser.parse_args()
 
     server = PaperBridgeServer(
@@ -391,9 +413,14 @@ def main():
         endpoint=args.endpoint,
         page_path=args.page,
         log_path=args.log,
+        token=args.token,
     )
     print(f"Paper reading bridge: http://{args.host}:{args.port}{args.endpoint}")
     print(f"Health: http://{args.host}:{args.port}/healthz")
+    if args.token:
+        print("Token auth: enabled; send X-Paper-Bridge-Token or Authorization: Bearer <token>")
+    else:
+        print("Token auth: disabled; use --token for safer local write-back")
     print(f"Request log: {Path(args.log).expanduser()}")
     print(f"HTML page: {Path(args.page).expanduser()}")
     server.serve_forever()

@@ -4,8 +4,9 @@
 /*
  * paper-reading-skills installer
  *
- * Installs the paper-reading skill into ~/.claude/skills and links it into
- * ~/.codex/skills. No API keys, paper PDFs, generated HTML, or private notes
+ * Installs the paper-reading skill into ~/.claude/skills and mirrors it into
+ * ~/.codex/skills. It prefers symlink/junction and falls back to copy on Windows
+ * or locked-down environments. No API keys, paper PDFs, generated HTML, or private notes
  * are included in this package.
  */
 
@@ -72,6 +73,18 @@ function installSkill(name) {
   if (backup) log(`    backup: ${backup}`);
 }
 
+function codexInstallMode(name) {
+  const codex = path.join(CODEX_SKILLS, name);
+  if (!fs.existsSync(codex)) return 'missing';
+  try {
+    const stat = fs.lstatSync(codex);
+    if (stat.isSymbolicLink()) return 'symlink';
+    const skillFile = path.join(codex, 'SKILL.md');
+    if (fs.existsSync(skillFile)) return 'copy';
+  } catch (_) {}
+  return 'invalid';
+}
+
 function linkCodexSkill(name) {
   fs.mkdirSync(CODEX_SKILLS, { recursive: true });
   const target = path.join(CLAUDE_SKILLS, name);
@@ -87,8 +100,17 @@ function linkCodexSkill(name) {
     }
   }
 
-  fs.symlinkSync(target, link);
-  log(`  ✓ ${name} linked -> ${link}`);
+  try {
+    const linkType = process.platform === 'win32' ? 'junction' : 'dir';
+    fs.symlinkSync(target, link, linkType);
+    log(`  ✓ ${name} linked -> ${link}`);
+  } catch (err) {
+    // Windows 未开启开发者模式、公司电脑权限受限、网络盘等场景下，symlink/junction
+    // 可能失败。此时复制一份到 Codex，保证 Skill 至少可用。
+    copyDir(target, link);
+    log(`  ! ${name} symlink failed; copied to Codex instead -> ${link}`);
+    log(`    reason: ${err.message}`);
+  }
 }
 
 function doctor() {
@@ -99,11 +121,12 @@ function doctor() {
     const codex = path.join(CODEX_SKILLS, name);
     const exists = fs.existsSync(claude);
     const hasNotice = fs.existsSync(notice);
-    const linked = fs.existsSync(codex) && fs.lstatSync(codex).isSymbolicLink();
+    const codexMode = codexInstallMode(name);
+    const codexOk = codexMode === 'symlink' || codexMode === 'copy';
     log(`${exists ? '✓' : '✗'} Claude skill: ${claude}`);
     log(`${hasNotice ? '✓' : '✗'} Attribution notice: ${notice}`);
-    log(`${linked ? '✓' : '✗'} Codex symlink: ${codex}`);
-    ok = ok && exists && hasNotice && linked;
+    log(`${codexOk ? '✓' : '✗'} Codex skill: ${codex} (${codexMode})`);
+    ok = ok && exists && hasNotice && codexOk;
   }
   try {
     execSync('python3 --version', { stdio: 'ignore' });
@@ -139,7 +162,7 @@ function printHelp() {
   log('  paper-reading-cpm install');
   log('');
   log('Commands:');
-  log('  install     Install/update ~/.claude/skills/paper-reading and link Codex');
+  log('  install     Install/update ~/.claude/skills/paper-reading and mirror Codex');
   log('  doctor      Check installed files and python3');
   log('  uninstall   Remove installed skill after making a backup');
   log('  help        Show this help');
@@ -176,6 +199,7 @@ function main() {
   log('');
   log('Done. Open a new Claude Code / Codex session, then ask for paper-reading tasks.');
   log('Bridge script: ~/.claude/skills/paper-reading/scripts/bridge.py');
+  log('Validator: ~/.claude/skills/paper-reading/scripts/validate_paper_html.py');
 }
 
 main();
