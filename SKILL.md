@@ -1,24 +1,40 @@
 ---
-name: paper-reading-skills
-description: Installer package for the paper-reading Claude Code / Codex skill.
+name: 成峰论文Skills
+description: chengfeng / AI产品自由 原创维护的论文解读 Skills 下载入口。通过一条 npx 命令从 GitHub 安装最新版到 Claude Code 或 Codex。
+version: 0.1.0
 ---
 
-# paper-reading-skills
+# paper-reading-skills 下载说明
 
-This repository packages one installable skill:
+这是 **chengfeng / AI产品自由** 原创维护的论文解读 Skills 下载入口。
 
-- `paper-reading`: purpose-first paper interpretation, HTML long-form docs, SVG explanations, annotation bridge write-back, and Codex browser verification.
+它会从 GitHub 安装最新版 `paper-reading` Skill 到 Claude Code / Codex 的本地 skills 目录。
 
-Install from GitHub:
+安装命令：
 
 ```bash
 npx -y github:Agentchengfeng/paper-reading-skills install
 ```
 
-The installer copies `skills/paper-reading` into `~/.claude/skills/paper-reading` and symlinks it into `~/.codex/skills/paper-reading`.
+源码地址：
 
-This package contains only reusable skill instructions and scripts. It does not contain generated paper-reading HTML files, annotation logs, paper PDFs, or API keys.
+```text
+https://github.com/Agentchengfeng/paper-reading-skills
+```
 
-Official source: `https://github.com/Agentchengfeng/paper-reading-skills`
+安装后会把最新版 Skills 下载到：
 
-License: Apache-2.0. Keep `LICENSE` and `NOTICE.md` when copying, redistributing, or adapting this package.
+```text
+~/.claude/skills/paper-reading
+~/.codex/skills/paper-reading
+```
+
+检查安装状态：
+
+```bash
+npx -y github:Agentchengfeng/paper-reading-skills doctor
+```
+
+这个 Skill 用来读论文、技术报告、arXiv PDF 或论文 repo。它不是单纯翻译论文，而是先抓研究目的，再拆问题链、机制链和证据链，最后整理成能继续追问、补充和进知识库的中文材料。
+
+请以 GitHub 仓库为最新来源；如果转载、二次发布或改造，请保留原作者和源码链接。
