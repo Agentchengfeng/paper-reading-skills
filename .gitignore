@@ -1,10 +1,51 @@
+# === 依赖目录 ===
 node_modules/
 npm-debug.log*
-.DS_Store
-*.tgz
-*.log
-.env
-.env.*
+
+# === 构建产物 ===
 coverage/
 dist/
 tmp/
+*.tgz
+
+# === 日志 ===
+*.log
+
+# === 环境变量与密钥(绝不提交) ===
+.env
+.env.*
+*.key
+*.pem
+*.p12
+secrets/
+credentials.json
+
+# === 编辑器/IDE 配置(个人开发环境,不上传) ===
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+
+# === 操作系统文件 ===
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === 运行时产物(bridge 运行后生成,非 skill 本体) ===
+*.jsonl
+paper_annotation_requests.jsonl
+annotations.jsonl
+
+# === 论文 HTML 和材料(用户私有内容,非 skill 本体) ===
+*.html
+!examples/**/*.html
+!tests/**/*.html
+
+# === Claude/Codex/ZCode 本地配置(私密,不上传) ===
+.claude/
+.codex/
+.zcode/
+.agents/

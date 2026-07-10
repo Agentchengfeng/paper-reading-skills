@@ -106,6 +106,7 @@ python3 scripts/bridge.py --page /absolute/path/to/paper.html --log paper_annota
 - 核心公式使用 KaTeX 双层渲染：`data-katex` 放 LaTeX 源码，`equation-plain` 放 Unicode 纯文字回退；KaTeX 不可用时显示预渲染 SVG 回退或纯文字回退。详见 `docs/04-katex-setup.md`。
 - 类继承/接口实现/调用时序使用 Mermaid UML 图：`<pre class="mermaid">` 放源码，Mermaid.js 浏览器端渲染；需要 UML 标准符号（空心三角、菱形、生命线）时用 Mermaid 而非手写 SVG。详见 `docs/05-mermaid-diagrams.md`。
 - 划线协作只保留三类动作：`名词讲解`、`逻辑梳理`、`作图理解`。
+- 划线写错时用 bridge 的撤销接口 `DELETE /__paper_undo`(撤销最近一条)或 `?id=mark-x`(撤销指定),会同时回滚 JSONL 和 HTML(删 aside + 还原高亮 span)。
 - 用户说 `重组`、`整合`、`合并到正文`、`改成新段落` 时，把批注内容融入正文，删除对应疑问卡片和解释块；有用 SVG 保留为普通正文图。
 - 本地 HTML 的刷新、DOM 检查和交互验证默认使用 Codex 内置浏览器；验证 URL 使用 localhost，不用 `file://` 代替。
 - 交付 HTML 前必须至少运行一次 validator；需要机器解析时使用 `--json`；需要检查协作页面契约时使用 `--contract`；发布/最终交付验收使用 `--contract --strict`。

@@ -195,9 +195,10 @@ diagram  作图理解
 默认接口：
 
 ```text
-POST http://127.0.0.1:8766/__paper_annotation
-GET  http://127.0.0.1:8766/healthz
-GET  http://127.0.0.1:8766/requests
+POST   http://127.0.0.1:8766/__paper_annotation   写入划线标记
+DELETE http://127.0.0.1:8766/__paper_undo         撤销最近一条(或指定 id)
+GET    http://127.0.0.1:8766/healthz              健康检查
+GET    http://127.0.0.1:8766/requests             查看全部已记录标记
 ```
 
 启动：
@@ -210,6 +211,29 @@ python3 ~/.claude/skills/paper-reading/scripts/bridge.py \
 ```
 
 Bridge 只负责写 JSONL、持久化高亮和插入疑问卡片，不生成解释。使用 `--token` 后，页面请求必须带 `X-Paper-Bridge-Token: <token>` 或 `Authorization: Bearer <token>`。
+
+### 撤销接口
+
+```text
+DELETE http://127.0.0.1:8766/__paper_undo            撤销 JSONL 末尾一条
+DELETE http://127.0.0.1:8766/__paper_undo?id=mark-x  撤销指定 mark_id 的那条
+```
+
+- 撤销流程:从 JSONL 删除目标行 → 调用 `remove_question_block` 回滚 HTML(删除对应 `<aside>` 疑问卡片 + 还原高亮 `<span>` 为纯文本 + 清理 SVG 文本上的 `svg-text-annotation-highlight`)。
+- 响应:
+
+```json
+{
+  "ok": true,
+  "undoneId": "mark-1700000000-123",
+  "undoneKind": "logic",
+  "undoneText": "路由决定信多少…",
+  "htmlResult": {"removed": true, "aside_removed": 1, "highlight_unwrapped": 1}
+}
+```
+
+- 失败情况:`log is empty` / `mark_id not found` / `html file not found`,返回 `{"ok": false, "reason": "..."}`。
+- HTML 端建议提供"撤销最近一次"按钮调用此接口,并在撤销成功后刷新页面查看高亮还原。
 
 ## 浏览器验证
 

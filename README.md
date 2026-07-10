@@ -203,6 +203,29 @@ Authorization: Bearer local-random-token
 
 Bridge 只做本地写回：接收标记、写 JSONL、修改 HTML。它不调用模型，也不保存 API key。
 
+### 撤销划线（bridge undo）
+
+划线写错时，可以撤销最近一条或指定一条：
+
+```bash
+# 撤销最近一条
+curl -X DELETE -H "X-Paper-Bridge-Token: local-random-token" \
+  http://127.0.0.1:8766/__paper_undo
+
+# 撤销指定 mark_id 的一条
+curl -X DELETE -H "X-Paper-Bridge-Token: local-random-token" \
+  "http://127.0.0.1:8766/__paper_undo?id=mark-1700000000-123"
+```
+
+撤销会同时：
+
+1. 从 JSONL 删除对应记录；
+2. 从 HTML 删除对应的 `<aside>` 疑问卡片；
+3. 把高亮 `<span>` 还原为纯文本（处理嵌套 span）；
+4. 清理 SVG 文本上的高亮标记。
+
+HTML 端建议提供"撤销最近一次"按钮调用此接口，撤销成功后刷新页面查看高亮还原。
+
 ## 工作流
 
 ```text

@@ -297,6 +297,206 @@ def insert_question_block(page_path, item):
     return {"inserted": False, "reason": f"section not found: {section_id}"}
 
 
+# --- 撤销支持 ---
+# 删除指定 mark_id 对应的疑问卡片(aside)并还原高亮 span 为纯文本。
+# 撤销语义:让 HTML 回到这条标记被插入之前的样子。
+
+ASIDE_BY_ID_RE = re.compile(
+    r"\n\s*<aside\b[^>]*data-question-id=\"(?P<qid>[^\"]+)\"[^>]*>.*?</aside>",
+    re.S,
+)
+
+HIGHLIGHT_BY_ID_RE = re.compile(
+    r'<span\b[^>]*data-mark-id="(?P<qid>[^"]+)"[^>]*>',
+    re.S,
+)
+
+# 匹配一个完整的 <span ...>...</span>(处理嵌套:用栈计数配对闭合标签)
+SPAN_OPEN_RE = re.compile(r'<span\b[^>]*>', re.S)
+SPAN_CLOSE_RE = re.compile(r'</span>', re.S)
+
+
+def _find_span_end(source, start):
+    """从 start 处的 <span ...> 开始,找到与之配对的 </span> 位置(处理嵌套 span)。
+
+    返回 (end_index_after_close, inner_text) 或 None。
+    """
+    open_match = SPAN_OPEN_RE.match(source, start)
+    if not open_match:
+        return None
+    pos = open_match.end()
+    depth = 1
+    inner_start = pos
+    while depth > 0 and pos < len(source):
+        next_open = SPAN_OPEN_RE.search(source, pos)
+        next_close = SPAN_CLOSE_RE.search(source, pos)
+        if not next_close:
+            return None  # 标签不闭合,放弃
+        if next_open and next_open.start() < next_close.start():
+            depth += 1
+            pos = next_open.end()
+        else:
+            depth -= 1
+            if depth == 0:
+                inner = source[inner_start:next_close.start()]
+                return next_close.end(), inner
+            pos = next_close.end()
+    return None
+
+
+def _unwrap_highlight_spans(source, mark_id):
+    """还原所有 data-mark-id == mark_id 的高亮 span 为纯文本,处理嵌套。
+
+    策略:反复扫描,每次找到目标 span 的开标签,用栈匹配找到配对的 </span>,
+    把整个 span 替换成 inner。处理嵌套:如果 inner 里还套着同 id 的 span,
+    下一轮扫描会继续处理。
+    """
+    changes = 0
+    while True:
+        m = HIGHLIGHT_BY_ID_RE.search(source)
+        if not m:
+            break
+        # 检查这个 span 是否是目标 mark_id
+        if m.group("qid") != mark_id:
+            # 找下一个:在当前匹配后继续找
+            # 但 HIGHLIGHT_BY_ID_RE 只匹配带 data-mark-id 的,需要跳过非目标的
+            # 用 search 从 m.end() 之后找下一个候选
+            next_m = HIGHLIGHT_BY_ID_RE.search(source, m.end())
+            if not next_m:
+                break
+            if next_m.group("qid") != mark_id:
+                # 没有目标了
+                break
+            m = next_m
+
+        result = _find_span_end(source, m.start())
+        if not result:
+            break
+        end, inner = result
+        # 替换:整个 span(含开闭标签)→ inner
+        source = source[:m.start()] + inner + source[end:]
+        changes += 1
+    return source, changes
+
+
+def remove_question_block(page_path, mark_id):
+    """从 HTML 删除指定 mark_id 的 aside 卡片 + 还原对应高亮 span。"""
+    if not page_path:
+        return {"removed": False, "reason": "page path not configured"}
+    if not mark_id:
+        return {"removed": False, "reason": "mark_id is empty"}
+
+    path = Path(page_path).expanduser()
+    if not path.exists():
+        return {"removed": False, "reason": "html file not found"}
+
+    source = path.read_text(encoding="utf-8")
+    changes = {"aside_removed": 0, "highlight_unwrapped": 0}
+
+    # 1. 删除匹配的 aside 块(data-question-id == mark_id)
+    def _drop_aside(m):
+        if m.group("qid") == mark_id:
+            changes["aside_removed"] += 1
+            return ""
+        return m.group(0)
+    source = ASIDE_BY_ID_RE.sub(_drop_aside, source)
+
+    # 2. 还原高亮 span(data-mark-id == mark_id)为纯文本(处理嵌套)
+    source, span_changes = _unwrap_highlight_spans(source, mark_id)
+    changes["highlight_unwrapped"] += span_changes
+
+    # 3. 还原 SVG 文本上的高亮(data-mark-id == mark_id)
+    #    策略:从 class 中移除 svg-text-annotation-highlight;若 class 变空则删 class 属性。
+    svg_mark_re = re.compile(
+        r'(?P<open><text\b[^>]*?)data-mark-id="(?P<qid>[^"]+)"([^>]*?)>'
+    )
+
+    def _strip_svg(m):
+        if m.group("qid") != mark_id:
+            return m.group(0)
+        open_tag = m.group("open") + m.group(3)
+        # 移除 svg-text-annotation-highlight class
+        open_tag = re.sub(r'\s*svg-text-annotation-highlight', '', open_tag)
+        # 移除空的 data-mark-kind
+        open_tag = re.sub(r'\s+data-mark-kind="[^"]*"', '', open_tag)
+        # 若 class="" 则删除
+        open_tag = re.sub(r'\s+class=""', '', open_tag)
+        changes["highlight_unwrapped"] += 1
+        return open_tag + ">"
+    source = svg_mark_re.sub(_strip_svg, source)
+
+    if changes["aside_removed"] or changes["highlight_unwrapped"]:
+        path.write_text(source, encoding="utf-8")
+        return {"removed": True, **changes}
+    return {"removed": False, "reason": "mark_id not found in html", **changes}
+
+
+def undo_last_mark(page_path, log_path, mark_id=None):
+    """撤销最近一条标记(或指定 mark_id 的那条)。
+
+    流程:
+      1. 从 JSONL 末尾找到目标记录(优先 mark_id,否则最后一条)
+      2. 从 JSONL 删除该行
+      3. 调 remove_question_block 回滚 HTML
+    """
+    log_path = Path(log_path).expanduser()
+    if not log_path.exists():
+        return {"ok": False, "reason": "log file not found"}
+
+    lines = log_path.read_text(encoding="utf-8").splitlines()
+    if not lines:
+        return {"ok": False, "reason": "log is empty"}
+
+    target_index = None
+    if mark_id:
+        # 从末尾向前找匹配的 mark_id(跳过损坏行)
+        for i in range(len(lines) - 1, -1, -1):
+            try:
+                row = json.loads(lines[i])
+            except json.JSONDecodeError:
+                continue
+            if row.get("id") == mark_id:
+                target_index = i
+                break
+        if target_index is None:
+            return {"ok": False, "reason": f"mark_id not found: {mark_id}"}
+    else:
+        # 取最后一条有效 JSON 行(跳过空行、损坏行)
+        for i in range(len(lines) - 1, -1, -1):
+            if not lines[i].strip():
+                continue
+            try:
+                json.loads(lines[i])
+                target_index = i
+                break
+            except json.JSONDecodeError:
+                continue
+        if target_index is None:
+            return {"ok": False, "reason": "log is empty"}
+
+    target_line = lines[target_index]
+    try:
+        target_item = json.loads(target_line)
+    except json.JSONDecodeError:
+        return {"ok": False, "reason": "target jsonl line is invalid"}
+
+    # 从 JSONL 删除该行
+    del lines[target_index]
+    log_path.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+
+    # 回滚 HTML
+    target_mark_id = target_item.get("id") or ""
+    html_result = remove_question_block(page_path, target_mark_id)
+
+    return {
+        "ok": True,
+        "undoneId": target_mark_id,
+        "undoneKind": target_item.get("kind"),
+        "undoneText": target_item.get("text", "")[:80],
+        "htmlResult": html_result,
+    }
+
+
 class PaperBridgeHandler(BaseHTTPRequestHandler):
     server_version = "PaperReadingBridge/2.1"
 
@@ -383,6 +583,27 @@ class PaperBridgeHandler(BaseHTTPRequestHandler):
             f.write(json.dumps(item, ensure_ascii=False) + "\n")
 
         self.write_json({"ok": True, "item": item, "reload": bool(insert_result.get("inserted"))})
+
+    def do_DELETE(self):
+        """撤销接口:DELETE /__paper_undo 删最近一条;带 ?id=mark-xxx 删指定一条。"""
+        if not self.require_token():
+            return
+        parsed = urlparse(self.path)
+        if parsed.path != "/__paper_undo":
+            self.write_json({"ok": False, "error": "not found"}, status=404)
+            return
+
+        # 从 query 取可选 mark_id
+        from urllib.parse import parse_qs
+        qs = parse_qs(parsed.query)
+        mark_id = (qs.get("id", [None]) or [None])[0]
+
+        result = undo_last_mark(
+            self.server.page_path,
+            self.server.log_path,
+            mark_id=mark_id,
+        )
+        self.write_json(result)
 
     def log_message(self, format, *args):
         print(f"[{self.log_date_time_string()}] {self.address_string()} {format % args}")
